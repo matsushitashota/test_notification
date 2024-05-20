@@ -1,0 +1,28 @@
+name: Notify Slack for Old PRs
+
+on:
+  schedule:
+    - cron: "0 12 * * *" # 毎日午前12時に実行
+
+jobs:
+  notify-slack:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Get old pull requests
+        id: get-old-prs
+        run: |
+          echo "Pull requests that are older than 1 week:"
+          gh pr list --state open --json createdAt,number,title,url --jq '.[] | select(.createdAt < "'$(date --date="7 days ago" --iso-8601=seconds)'")'
+
+      - name: Send message to Slack
+        if: steps.get-old-prs.outputs.pr_list
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+          text: ${{ steps.get-old-prs.outputs.pr_list }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
