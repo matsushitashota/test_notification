@@ -2,7 +2,7 @@ name: Notify Slack for Old PRs
 
 on:
   schedule:
-    - cron: "10 8 * * *" # 毎日午後4時39分に実行
+    - cron: "20 8 * * *" # 毎日午後4時39分に実行
 
 jobs:
   notify-slack:
