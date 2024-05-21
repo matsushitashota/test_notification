@@ -2,10 +2,10 @@ name: Notify Slack for Old PRs
 
 on:
   schedule:
-    - cron: "30 7 * * *"
-    - cron: "30 8 * * *"
-    - cron: "30 9 * * *"
-    - cron: "30 10 * * *"
+    - cron: "45 7 * * *"
+    - cron: "45 8 * * *"
+    - cron: "45 9 * * *"
+    - cron: "45 10 * * *"
 
 jobs:
   notify-slack:
@@ -16,8 +16,8 @@ jobs:
       - name: Get old pull requests
         id: get-old-prs
         run: |
-          echo "Pull requests that are older than 1 week:"
-          gh pr list --state open --json createdAt,number,title,url --jq '.[] | select(.createdAt < "'$(date --date="1 week ago" --iso-8601=seconds)'")'
+          echo "Pull requests that are older than 1 minute:"
+          gh pr list --state open --json createdAt,number,title,url --jq '.[] | select(.createdAt < "'$(date --date="1 minute ago" --iso-8601=seconds)'")'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Send message to Slack
