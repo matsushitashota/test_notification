@@ -2,7 +2,7 @@ name: Notify Slack for Old PRs
 
 on:
   schedule:
-    - cron: "0 13 * * *" # 毎日午前13時に実行
+    - cron: "17 16 * * *" # 毎日午前13時に実行
 
 jobs:
   notify-slack:
@@ -11,12 +11,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Get old pull requests
-        id: get-old-prs
-        run: |
-          echo "Pull requests that are older than 1 week:"
-          gh pr list --state open --json createdAt,number,title,url --jq '.[] | select(.createdAt < "'$(date --date="7 days ago" --iso-8601=seconds)'")'
-
       - name: Send Hello World to Slack
         uses: 8398a7/action-slack@v3
         with:
@@ -24,13 +18,3 @@ jobs:
           text: "Hello World"
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
-      # - name: Send message to Slack
-      #   if: steps.get-old-prs.outputs.pr_list
-      #   uses: 8398a7/action-slack@v3
-      #   with:
-      #     status: ${{ job.status }}
-      #     fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
-      #     text: ${{ steps.get-old-prs.outputs.pr_list }}
-      #   env:
-      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
