@@ -35,7 +35,7 @@ jobs:
         with:
           status: ${{ job.status }}
           fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
-          text: "古いプルリクエストのリスト:\n${{ steps.get-old-prs.outputs.pr_list }}\nこちらのプルリクエストを確認してください。"
+          text: "1週間経過したPR:\n${{ steps.get-old-prs.outputs.pr_list }}\n"
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
