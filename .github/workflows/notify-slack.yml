@@ -21,6 +21,27 @@ jobs:
           echo "::set-output name=pr_list::$combined_pr_list"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Send PR list to Slack
+        run: |
+          pr_list=$(gh pr list --base master --state open --json createdAt,title,url | jq -r '.[] | "\(.title) (\(.url)) - Created at: \(.createdAt)"')
+          if [ -z "$pr_list" ]; then
+            echo "No open pull requests."
+            pr_list="現在オープン状態のプルリクエストはありません。"
+          fi
+          echo "$pr_list" > pr_list.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Notify Slack
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+          text: "Master branch open pull requests:\n$(cat pr_list.txt)"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
       - name: Send message to Slack if PRs exist
         if: steps.get-old-prs.outputs.pr_list
         uses: 8398a7/action-slack@v3
