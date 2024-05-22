@@ -22,7 +22,8 @@ jobs:
         id: get-old-prs
         run: |
           echo "Pull requests that are older than 1 minute:"
-          gh pr list --state open --json createdAt,number,title,url --jq '.[] | select(.createdAt < "'$(date --date="1 minute ago" --iso-8601=seconds)'")'
+          pr_list=$(gh pr list --state open --json createdAt,number,title,url --jq '.[] | select(.createdAt < "'$(date --date="1 minute ago" --iso-8601=seconds)'")')
+          echo "::set-output name=pr_list::$pr_list"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Send message to Slack
