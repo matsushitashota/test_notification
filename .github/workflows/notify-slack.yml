@@ -25,7 +25,7 @@ jobs:
         id: get-old-prs
         run: |
           echo "Pull requests that are older than 1 minute:"
-          pr_list=$(gh pr list --state open --json createdAt,title,url --jq '.[] | select(.createdAt < "'$(date --date="1 minute ago" --iso-8601=seconds)'") | .createdAt = "作成日時: " + (.createdAt | fromdate | strftime("%Y-%m-%d %H:%M") | gsub(" "; "T") | . + "+09:00" | strptime("%Y-%m-%dT%H:%M%z") | strftime("%Y-%m-%d %H:%M"))')
+          pr_list=$(gh pr list --state open --json createdAt,title,url --jq '.[] | select(.createdAt < "'$(date --date="1 minute ago" --iso-8601=seconds)'") | .createdAt = "作成日時: " + (.createdAt | fromdate | strftime("%Y-%m-%d %H:%M") | gsub(" "; "T") | . + "+09:00" | strptime("%Y-%m-%dT%H:%M%z") | strftime("%Y-%m-%d %H:%M")) | @text "\(.title) \(.url) \(.createdAt)\n"')
           echo "::set-output name=pr_list::$pr_list"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -35,7 +35,7 @@ jobs:
         with:
           status: ${{ job.status }}
           fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
-          text: "1週間経過したPR:\n${{ steps.get-old-prs.outputs.pr_list }}\n"
+          text: "【1週間経過したPR】\n${{ steps.get-old-prs.outputs.pr_list }}\n"
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
