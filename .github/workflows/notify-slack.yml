@@ -29,6 +29,8 @@ jobs:
             pr_list="現在オープン状態のプルリクエストはありません。"
           fi
           echo "$pr_list" > pr_list.txt
+          echo "::set-output name=pr_list_content::$(cat pr_list.txt)"
+        id: format-pr-list
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -37,7 +39,7 @@ jobs:
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
-          text: "Master branch open pull requests:\n$(cat pr_list.txt)"
+          text: ${{ steps.format-pr-list.outputs.pr_list_content }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
