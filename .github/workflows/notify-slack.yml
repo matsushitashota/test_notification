@@ -29,19 +29,22 @@ jobs:
           echo "::set-output name=pr_list::$pr_list"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Send message to Slack
+      - name: Send message to Slack if PRs exist
         if: steps.get-old-prs.outputs.pr_list
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
           fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
-          text: "古いプルリクエストのリスト: ${{ steps.get-old-prs.outputs.pr_list }} こちらのプルリクエストを確認してください。"
+          text: "古いプルリクエストのリスト:%0A${{ steps.get-old-prs.outputs.pr_list }}%0Aこちらのプルリクエストを確認してください。"
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-      - name: Send Hello World to Slack
+
+      - name: Send message to Slack if no PRs
+        if: steps.get-old-prs.outputs.pr_list == ''
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
-          text: "Hello World"
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+          text: "古いプルリクエストはありません。"
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
