@@ -21,19 +21,23 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
       - name: Get old pull requests
         id: get-old-prs
         run: |
+          PR_LIST=$(gh pr list)
           echo "Open pull requests:"
-          echo "$(gh pr list)"
+          echo "$PR_LIST"
+          echo "::set-output name=pr_list::$PR_LIST"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Send message to Slack if PRs exist
         if: steps.get-old-prs.outputs.pr_list
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
-          text: "【1週間経過したPR】\n${{ steps.get-old-prs.outputs.pr_list }}\n"
+          text: "【1週間経過したPR】\n${{ steps.get-old-prs.outputs.pr_list }}"
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
