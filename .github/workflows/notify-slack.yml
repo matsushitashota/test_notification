@@ -3,7 +3,17 @@ name: Notify Slack for Old PRs
 on:
   schedule:
     - cron: "0 * * * *"
+    - cron: "5 * * * *"
+    - cron: "10 * * * *"
+    - cron: "15 * * * *"
+    - cron: "20 * * * *"
+    - cron: "25 * * * *"
     - cron: "30 * * * *"
+    - cron: "35 * * * *"
+    - cron: "40 * * * *"
+    - cron: "45 * * * *"
+    - cron: "50 * * * *"
+    - cron: "55 * * * *"
 
 jobs:
   notify-slack:
@@ -15,34 +25,10 @@ jobs:
         id: get-old-prs
         run: |
           echo "Pull requests that are older than 1 minute for the 'master' or 'develop' branches:"
-          pr_list_master=$(gh pr list --base master --state open --json createdAt,title,url --limit 100 --jq '.[] | select(.createdAt < "'$(date --date="1 minute ago" --iso-8601=seconds)'") | .createdAt = "作成日時: " + (.createdAt | fromdate | strftime("%Y-%m-%d %H:%M") | gsub(" "; "T") | . + "+09:00" | strptime("%Y-%m-%dT%H:%M%z") | strftime("%Y-%m-%d %H:%M")) | "[\(.title)](\(.url)) - \(.createdAt)\n"')
-          pr_list_develop=$(gh pr list --base develop --state open --json createdAt,title,url --limit 100 --jq '.[] | select(.createdAt < "'$(date --date="1 minute ago" --iso-8601=seconds)'") | .createdAt = "作成日時: " + (.createdAt | fromdate | strftime("%Y-%m-%d %H:%M") | gsub(" "; "T") | . + "+09:00" | strptime("%Y-%m-%dT%H:%M%z") | strftime("%Y-%m-%d %H:%M")) | "[\(.title)](\(.url)) - \(.createdAt)\n"')
-          combined_pr_list="$pr_list_master$pr_list_develop"
-          echo "::set-output name=pr_list::$combined_pr_list"
+          pr_list_master=$(gh pr list --base master --state open --json createdAt,title,url --jq '.[] | select(.createdAt < "'$(date --date="1 minute ago" --iso-8601=seconds)'") | .createdAt = "作成日時: " + (.createdAt | fromdate | strftime("%Y-%m-%d %H:%M") | gsub(" "; "T") | . + "+09:00" | strptime("%Y-%m-%dT%H:%M%z") | strftime("%Y-%m-%d %H:%M")) | "[\(.title)](\(.url)) - \(.createdAt)\n"')
+          echo "::set-output name=pr_list::$pr_list_master"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Send PR list to Slack
-        run: |
-          pr_list=$(gh pr list --base master --state open --json createdAt,title,url --limit 100 | jq -r '.[] | "\(.title) (\(.url)) - Created at: \(.createdAt)"')
-          if [ -z "$pr_list" ]; then
-            echo "No open pull requests."
-            pr_list="現在オープン状態のプルリクエストはありません。"
-          fi
-          echo "$pr_list" > pr_list.txt
-          echo "::set-output name=pr_list_content::$(cat pr_list.txt)"
-        id: format-pr-list
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Notify Slack
-        if: always()
-        uses: 8398a7/action-slack@v3
-        with:
-          status: ${{ job.status }}
-          text: ${{ steps.format-pr-list.outputs.pr_list_content }}
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
       - name: Send message to Slack if PRs exist
         if: steps.get-old-prs.outputs.pr_list
         uses: 8398a7/action-slack@v3
