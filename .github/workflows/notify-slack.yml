@@ -24,9 +24,8 @@ jobs:
       - name: Get old pull requests
         id: get-old-prs
         run: |
-          echo "Pull requests that are older than 1 minute for the 'master' or 'develop' branches:"
-          pr_list_master=$(gh pr list --base master --state open --json createdAt,title,url --jq '.[] | select(.createdAt < "'$(date --date="1 minute ago" --iso-8601=seconds)'") | .createdAt = "作成日時: " + (.createdAt | fromdate | strftime("%Y-%m-%d %H:%M") | gsub(" "; "T") | . + "+09:00" | strptime("%Y-%m-%dT%H:%M%z") | strftime("%Y-%m-%d %H:%M")) | "[\(.title)](\(.url)) - \(.createdAt)\n"')
-          echo "::set-output name=pr_list::$pr_list_master"
+          echo "Open pull requests:"
+          echo "$(gh pr list)"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Send message to Slack if PRs exist
