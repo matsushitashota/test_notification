@@ -25,10 +25,10 @@ jobs:
       - name: Get old pull requests
         id: get-old-prs
         run: |
-          PR_LIST=$(gh pr list --limit 10 --json title,url,createdAt)
+          PR_LIST=$(gh pr list --state open --json createdAt,title,url --jq '.[] | select(.createdAt < "'$(date --date="1 minute ago" --iso-8601=seconds)'") | .createdAt = "作成日時: " + (.createdAt | fromdate | strftime("%Y-%m-%d %H:%M") | gsub(" "; "T") | . + "+09:00" | strptime("%Y-%m-%dT%H:%M%z") | strftime("%Y-%m-%d %H:%M")) | @text "\(.title) \(.url) \(.createdAt)\n"')
           echo "Open pull requests:"
           echo "$PR_LIST"
-          PR_LIST_ESCAPED=$(echo "$PR_LIST" | jq -r '.[] | "\(.title) \((.createdAt | fromdateiso8601 | . + 32400 | strftime(\"%Y年%m月%d日%H:%M\")) \(.url)"' | sed ':a;N;$!ba;s/\n/%0A/g')
+          PR_LIST_ESCAPED=$(echo "$PR_LIST" | sed ':a;N;$!ba;s/\n/%0A/g')
           echo "pr_list=$PR_LIST_ESCAPED" >> $GITHUB_ENV
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
