@@ -25,7 +25,7 @@ jobs:
       - name: Get old pull requests
         id: get-old-prs
         run: |
-          PR_LIST=$(gh pr list --limit 10 --json title,url,createdAt)
+          PR_LIST=$(gh pr list --limit 10 --json title,url,createdAt --search "-review:approved")
           echo "Open pull requests:"
           echo "$PR_LIST"
           PR_LIST_ESCAPED=$(echo "$PR_LIST" | jq -r '.[] | "\(.title) \((.createdAt | fromdateiso8601 | . + 32400 | todateiso8601)) \(.url) (経過日数: \((now - (.createdAt | fromdateiso8601)) / 86400 | floor)日)"' | sed ':a;N;$!ba;s/\n/%0A/g')
