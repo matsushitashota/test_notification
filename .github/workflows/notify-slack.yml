@@ -21,21 +21,24 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
       - name: Get old pull requests
         id: get-old-prs
         run: |
-          echo "Pull requests that are older than 1 minute:"
-          pr_list=$(gh pr list --state open --json createdAt,number,title,url --jq '.[] | select(.createdAt < "'$(date --date="1 minute ago" --iso-8601=seconds)'") | .createdAt = (.createdAt | fromdate | strftime("%Y-%m-%d %H:%M") | gsub(" "; "T") | . + "+09:00" | strptime("%Y-%m-%dT%H:%M%z") | strftime("%Y-%m-%d %H:%M"))')
-          echo "::set-output name=pr_list::$pr_list"
+          PR_LIST=$(gh pr list --limit 10 --json title,url,createdAt)
+          echo "Open pull requests:"
+          echo "$PR_LIST"
+          PR_LIST_ESCAPED=$(echo "$PR_LIST" | jq -r '.[] | "\(.title) \((.createdAt | fromdateiso8601 | . + 32400 | todateiso8601)) \(.url) (経過日数: \((now - (.createdAt | fromdateiso8601)) / 86400 | floor)日)"' | sed ':a;N;$!ba;s/\n/%0A/g')
+          echo "::set-output name=pr_list::$PR_LIST_ESCAPED"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Send message to Slack if PRs exist
         if: steps.get-old-prs.outputs.pr_list
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
-          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
-          text: "古いプルリクエストのリスト:\n${{ steps.get-old-prs.outputs.pr_list }}\nこちらのプルリクエストを確認してください。"
+          text: "${{ github.repository }} \n【1週間経過したPR】\n${{ steps.get-old-prs.outputs.pr_list }}"
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
@@ -44,7 +47,6 @@ jobs:
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
-          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
           text: "古いプルリクエストはありません。"
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
